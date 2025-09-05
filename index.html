@@ -31,10 +31,24 @@
       border: 1px solid #ddd;
       padding: 10px;
       margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .item p {
       margin: 0;
       font-size: 18px;
+    }
+    .delete-btn {
+      background-color: #ff4d4d;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .delete-btn:hover {
+      background-color: #e60000;
     }
   </style>
 </head>
@@ -55,7 +69,13 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-database.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      onValue,
+      remove
+    } from "https://www.gstatic.com/firebasejs/9.5.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyALM9Uj33s4UjrBZ_iiLvx02sbBjOlAFdA",
@@ -70,6 +90,7 @@
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
 
+    // Carrega os itens da base de dados
     function loadItems() {
       const itemsRef = ref(database, 'items');
       onValue(itemsRef, (snapshot) => {
@@ -79,14 +100,19 @@
 
         for (const id in items) {
           const item = items[id];
+
           const itemElement = document.createElement('div');
           itemElement.classList.add('item');
-          itemElement.innerHTML = `<p><strong>${item.name}</strong> vai levar <em>${item.item}</em></p>`;
+          itemElement.innerHTML = `
+            <p><strong>${item.name}</strong> vai levar <em>${item.item}</em></p>
+            <button class="delete-btn" onclick="deleteItem('${id}')">🗑️ Deletar</button>
+          `;
           listContainer.appendChild(itemElement);
         }
       });
     }
 
+    // Adiciona novo item
     function addItem() {
       const name = document.getElementById('name').value;
       const item = document.getElementById('item').value;
@@ -104,8 +130,15 @@
       document.getElementById('item').value = '';
     }
 
-    window.addEventListener('load', loadItems);
+    // Deleta item do banco de dados
+    window.deleteItem = function(id) {
+      const itemRef = ref(database, 'items/' + id);
+      remove(itemRef);
+    }
+
+    // Carrega ao abrir a página
     window.addItem = addItem;
+    window.addEventListener('load', loadItems);
   </script>
 
 </body>
